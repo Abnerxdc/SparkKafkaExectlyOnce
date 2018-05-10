@@ -2,7 +2,10 @@ package com.abner.dao;
 
 
 import com.abner.bean.KafkaOffsetBean;
+import com.abner.connection.MysqlConnection;
 
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,28 +15,37 @@ import java.util.List;
 public class KafkaOffsetDao {
     public static final String tbl_kafka_offset = "tbl_kafka_offset";
     //表字段
-//    public static final String TblTopic = "topic";
-//    public static final String TblPartition = "partition";
-//    public static final String TblStartOffset = "start_offset";
-//    public static final String TblEndOffset = "end_offset";
-//    public static final String TblStatus = "status";
 
     /**
      * 状态1 为 处理中
      * @param topic
      * @param partition
      * @param startOffset
-     * @param endOffset
+     * @param untilOffset
      */
-    public static void insetOffsetStatus(String topic , int partition , long startOffset , long endOffset ,int status){
-        String sql = String.format("insert into %s (`topic` ,`partition` , `startOffset` , `endOffset` , `status`) " +
-                "values ( '%s' , '%s'  , '%s' , '%s')",tbl_kafka_offset,topic,partition,startOffset,endOffset,status);
-
+    public static boolean insetOffsetStatus(String topic , int partition , long startOffset , long untilOffset ,int status){
+        String sql = String.format("insert into %s (`topic` ,`partition` , `startOffset` , `untilOffset` , `status`) " +
+                "values ( '%s' , '%s'  , '%s' , '%s')",tbl_kafka_offset,topic,partition,startOffset,untilOffset,status);
+        boolean returnFlag = false;
+        try(Connection con = MysqlConnection.getConnection();
+            Statement stmt = con.createStatement()){
+            returnFlag = stmt.execute(sql);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return returnFlag;
     }
-    public static void deleteOffsetStatus(String topic , int partition , long startOffset , long endOffset ){
+    public static boolean deleteOffsetStatus(String topic , int partition , long startOffset , long untilOffset ){
         String sql = String.format("delete from %s where `topic` = '%s' , `partition` = '%s'  ," +
-                "`startOffset` = '%s' , `endOffset` = '%s'",tbl_kafka_offset,topic,partition,startOffset,endOffset);
-
+                "`startOffset` = '%s' , `untilOffset` = '%s'",tbl_kafka_offset,topic,partition,startOffset,untilOffset);
+        boolean returnFlag = false;
+        try(Connection con = MysqlConnection.getConnection();
+            Statement stmt = con.createStatement()){
+            returnFlag = stmt.execute(sql);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return returnFlag;
     }
 
     /**
